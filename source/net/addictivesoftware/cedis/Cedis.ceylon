@@ -82,4 +82,42 @@ shared class Cedis(String host="localhost", Integer port=6379, Integer timeout=2
         }
         return result;
     }
+    
+    doc "If key holds a hash, retrieve the value associated to the specified field.
+     	Time complexity: O(1)"
+    shared actual String hget(String key, String field) {
+        connection.sendCommand("HGET", {key, field});
+    	return connection.getReply();
+    }
+    
+    doc "Set the specified hash field to the specified value.
+     	If key does not exist, a new key holding a hash is created.
+     	Time complexity: O(1)"
+    shared actual Integer hset(String key, String field, String val) {
+        connection.sendCommand("HSET", {key, field, val});
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Returns true if key exists"
+    actual shared Boolean existsKey(String key) {
+    	connection.sendCommand("EXISTS", {key});
+    	return connection.getReply() == "1";
+    }
+    
+    doc "Clears all databases"
+    shared String flushAll() {
+        connection.sendCommandNoArgs("FLUSHALL");
+        return connection.getReply();
+    }
+    
+    doc "Returns the type of a stored key"
+    shared actual String type(String key) {
+        connection.sendCommand("TYPE", {key});
+    	return connection.getReply();
+    }
+    shared actual Integer expire(String key, Integer seconds) {
+        connection.sendCommand("EXPIRE", {key, seconds.string});
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
 }

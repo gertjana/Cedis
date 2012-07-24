@@ -7,6 +7,8 @@ void run() {
     Cedis cedis = Cedis();
     cedis.connect();
     
+    cedis.flushAll();
+    
     print("SET test 123");
     assertEquals("OK", cedis.set("test", "123"));
     print("GET test");
@@ -38,21 +40,43 @@ void run() {
     assertEquals(Entry<String, String>(":email","theo@test.com"), cedis.hgetall("testuser:1").first else "element empty!");
     assertEquals(Entry<String, String>(":name","Theo Tester"), cedis.hgetall("testuser:1").rest.first else "element empty!");
 
+	print("HSET testhash :food hashee");
+	assertEquals(1, cedis.hset("testhash", ":food", "hashee"));
+	print("HGET testhash :food");
+	assertEquals("hashee", cedis.hget("testhash", ":food"));
+	print("HSET testhash :food hasheekidee");
+	assertEquals(0, cedis.hset("testhash", ":food", "hasheekidee"));
+
+	print("EXISTS test");
+	assertTrue(cedis.existsKey("test"));
+	assertFalse(cedis.existsKey("nonexisting"));
+
+	print("TYPE test");
+	assertEquals("string", cedis.type("test"));
+	assertEquals("hash", cedis.type("testhash"));
+	assertEquals("none", cedis.type("whatever"));
+
+	print("EXPIRE test");
+	assertEquals(1, cedis.expire("test", 5));
+	assertEquals(0, cedis.expire("whatever", 5));
 
     cedis.disconnect(); 
 }
 
-    void assertEquals(Object a, Object b) {
-        if (a.equals(b)) {
-            print("OK");
-        } else {
-            print("FAIL: " + a.string + " <-> " + b.string);
-        }
+void assertEquals(Object a, Object b) {
+    if (a.equals(b)) {
+        print("OK");
+    } else {
+        print("FAIL: " + a.string + " <-> " + b.string);
     }
-    void assertTrue(Boolean a) {
-        if (a) {
-            print("OK");
-        } else {
-            print("FAIL");
-        }
+}
+void assertTrue(Boolean a) {
+    if (a) {
+        print("OK");
+    } else {
+        print("FAIL");
     }
+}
+void assertFalse(Boolean a) {
+	assertTrue(!a);
+}    

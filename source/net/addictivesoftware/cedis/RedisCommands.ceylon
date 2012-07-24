@@ -1,24 +1,23 @@
 
 shared interface RedisCommands {
 
-    shared formal String info();
-
-    shared formal String set(String key, String val);
-
-    shared formal String get(String key);
-
-    shared formal String hmset(String key, Map<String, String> hash);
-
-    shared formal Iterable<String> hmget(String key, String... fields);
-
-    shared formal Map<String, String> hgetall(String key);
-
-/*
     shared formal Boolean existsKey(String key);
-
+    shared formal Integer expire(String key, Integer seconds);
+    shared formal String info();
+    shared formal String get(String key);
+    shared formal String hget(String key, String field);
+    shared formal Map<String, String> hgetall(String key);
+    shared formal Iterable<String> hmget(String key, String... fields);
+    shared formal String hmset(String key, Map<String, String> hash);
+    shared formal Integer hset(String key, String field, String val);
+    shared formal String set(String key, String val);
     shared formal String type(String key);
 
-    shared formal Integer expire(String key, Integer seconds);
+
+/*
+ 
+
+
 
     shared formal Integer expireAt(String key, Integer unixTime);
 
@@ -50,9 +49,7 @@ shared interface RedisCommands {
 
     shared formal String substr(String key, Integer start, Integer end);
 
-    shared formal Integer hset(String key, String field, String val);
 
-    shared formal String hget(String key, String field);
 
     shared formal Integer hsetnx(String key, String field, String val);
 

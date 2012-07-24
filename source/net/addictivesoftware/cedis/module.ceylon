@@ -10,6 +10,12 @@ Module module {
             version = '0.3.1';
             optional = false;
             export = false;
+        },
+        Import {
+            name = 'ceylon.collection';
+            version = '0.3.1';
+            optional = false;
+            export = false;
         }
     };
 }

@@ -1,13 +1,10 @@
 import java.net {InetSocketAddress,Socket, SocketException }
 import java.lang {Byte}
 import ceylon.interop.java {javaString}
-shared class RedisConnection(String host="localhost", Integer port=6379, Integer timeout=2000) {
+shared class RedisConnection(String host, Integer port, Integer timeout) {
     
     variable Socket socket := Socket();
-    variable Integer pipelinedCommands := 0;
     variable Protocol protocol := Protocol();
-    //variable RedisOutputStream outputStream;
-    //variable RedisInputStream inputStream;
 
     default shared void connect() {
         if (!isConnected()) {
@@ -18,15 +15,12 @@ shared class RedisConnection(String host="localhost", Integer port=6379, Integer
 
             socket.connect(InetSocketAddress(host, port), timeout);
             socket.soTimeout := timeout;
-
-            //outputStream = new RedisOutputStream(socket.getOutputStream());
-            //inputStream = new RedisInputStream(socket.getInputStream());
         }
     }
     shared void disconnect() {
         if (isConnected()) {
-                socket.inputStream.close();
-                socket.outputStream.close();
+                //socket.inputStream.close();
+                //socket.outputStream.close();
                 if (!socket.closed) {
                     socket.close();
                 }
@@ -40,23 +34,21 @@ shared class RedisConnection(String host="localhost", Integer port=6379, Integer
                 !socket.outputShutdown;
     }
 
-    doc "Send command with no arguments"
-    RedisConnection sendCommand(String cmd) {
-        connect();
-        Sequence<String> args = ArraySequence<String>();
-        protocol.sendCommand(socket.outputStream, cmd, args);
-        pipelinedCommands++;
-        return this;
+    shared void sendCommandNoArgs(String cmd) {
+        sendCommand(cmd, {});
     }
-    
-    shared String info() {
-        connect();
-        sendCommand("info");
-        return getBulkReply();
+    shared void sendCommand(String cmd,  Empty|Sequence<String> args) {
+        protocol.sendCommand(socket.outputStream, cmd, args);
     }
 
-    shared String getBulkReply() {
-        return protocol.read(socket.inputStream);
+    shared String getReply() {
+        Iterable<String> result = protocol.read(socket.inputStream);
+        return result.first else "NO RESULT";
     }
+
+    shared Iterable<String> getBulkReply() {
+       return protocol.read(socket.inputStream);
+    }
+
 }
 

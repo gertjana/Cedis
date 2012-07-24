@@ -1,95 +1,107 @@
 import java.io {OutputStream, InputStream}
-import java.lang { Byte, Char=Character }
-import ceylon.language {C=Character }
+import java.lang { JString=String{format} }
 import ceylon.interop.java { javaString }
 
 shared class Protocol() {
-    variable Integer dollarByte := Byte.parseByte("$");
-    variable Integer asterixByte := Byte.parseByte("*");
-    variable Integer plusByte := Byte.parseByte("+");
-    variable Integer minusByte := Byte.parseByte("-");
-    variable Integer colonByte := Byte.parseByte(":");
+    String commandPattern = "*%s\r\n$%s\r\n%s\r\n";
+    String argPattern = "$%s\r\n%s\r\n";
 
-    shared void sendCommand(OutputStream os, String command, Sequence<String>|Empty args) {
-        os.write(asterixByte);
-        os.write(args.size + 1);
-        os.write(javaString("\r\n").bytes);
-        os.write(dollarByte);
-        os.write(command.size);
-        os.write(javaString("\r\n").bytes);
-        os.write(javaString(command).bytes);
-        os.write(javaString("\r\n").bytes);
-    
+    Integer minusSymbol    = 45;
+    Integer plusSymbol     = 43;
+    Integer dollarSymbol   = 36;
+    Integer colonSymbol    = 58;
+    Integer asteriksSymbol = 42;
+
+
+    //*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n
+    shared void sendCommand(OutputStream os, String command, Empty|Sequence<String> args) {
+        StringBuilder sb = StringBuilder();
+        sb.append(format(commandPattern, args.size+1, command.size, command));
         for (String arg in args) {
-            os.write(dollarByte);
-            os.write(arg.size);
-            os.write(javaString("\r\n").bytes);
-            os.write(javaString(arg).bytes);
-            os.write(javaString("\r\n").bytes);
+            sb.append(format(argPattern, arg.size, arg));
         }
+        os.write(javaString(sb.string).bytes);
     }
 
-    shared String|Iterable<String> read(InputStream inputStream) {
-        return process(inputStream);
-    }
-
-    shared String process(InputStream inputStream) {
-         variable Integer b := inputStream.read();
-
-        if (b == minusByte) {
-            processError(inputStream);
-        } else if (b == asterixByte) {
-        return processMultiBulkReply(inputStream);
-        } else if (b == colonByte) {
-        return processInteger(inputStream);
-        } else if (b == dollarByte) {
-        return processBulkReply(inputStream);
-        } else if (b == plusByte) {
-        return processStatusCodeReply(inputStream);
+    shared Iterable<String> read(InputStream inputStream) {
+        Integer first = inputStream.read();
+        //print("FIRST:"+first.string);
+        if (first == minusSymbol) {
+            return processError(inputStream);
+        } else if (first == dollarSymbol) {
+            return {processBulkReply(inputStream)};
+        } else if (first == asteriksSymbol) {
+            return processMultiBulkReply(inputStream);
+        } else if (first == plusSymbol) {
+            return processStatusCodeReply(inputStream);
+        } else if (first == colonSymbol) {
+            return processInteger(inputStream);
         } else {
-            throw Exception("Unknown reply: " + b.string);
+            return {"ERROR, not a valid response"};
         }
-        return "";
     } 
-    shared String processError(InputStream inputStream) {
-        return "";
+
+    Iterable<String> processError(InputStream inputStream) {
+        return {readline(inputStream)};
     } 
-    shared String processMultiBulkReply(InputStream inputStream) {
-        return "";
+
+    Iterable<String> processMultiBulkReply(InputStream inputStream) {
+        return readlines(inputStream);
     } 
-    shared String processInteger(InputStream inputStream) {
-        return "";
+
+    Iterable<String> processInteger(InputStream inputStream) {
+        return {readline(inputStream)};
     } 
-    shared String processBulkReply(InputStream inputStream) {
-        Integer? len = parseInteger(readline(inputStream));
-        if (!len exists) {
+    
+    String processBulkReply(InputStream inputStream) {
+        variable Integer length := parseInteger(readline(inputStream)) else 0;
+        if (length == -1) {
             return "";
-        } else {
-            Array<Integer> read = arrayOfSize<Integer>(0, len else 0);
-            variable Integer offset := 0;
-            while (offset < (len else 0)) {
-                offset += inputStream.read(read, offset, ((len else 0)- offset));
-            }
-            // read 2 more bytes for the command delimiter
-            inputStream.read();
-            inputStream.read();
-            return read.string;
         }
-    } 
-
-    shared String processStatusCodeReply(InputStream inputStream) {
-        return "";
-    } 
-
-    String readline(InputStream inputStream) {
-        variable Array<Integer> result := arrayOfSize<Integer>(0,0);
+        StringBuilder result = StringBuilder();
         variable Integer cnt := 0;
-        while (true) {
-            Integer b = inputStream.read();
-            result.setItem(cnt,b);
+        while (cnt < length) {
+            result.appendCharacter(inputStream.read().character);
             cnt++;
         }
-        return javaString("").copyValueOf(result));
+        inputStream.read();
+        inputStream.read();
+        return result.string;
+    } 
+
+    Iterable<String> processStatusCodeReply(InputStream inputStream) {
+        return {readline(inputStream)};
+    } 
+
+    Iterable<String> readlines(InputStream inputStream) {
+        SequenceBuilder<String> result = SequenceBuilder<String>();
+        variable Integer length := parseInteger(readline(inputStream)) else 0;
+        while (length > 0) {
+            inputStream.read();
+            result.append(processBulkReply(inputStream));
+            length--;
+        }
+       return result.sequence;
+    }
+
+    String readline(InputStream inputStream) {
+        variable StringBuilder sb := StringBuilder();
+
+        while (true) {
+            Integer b = inputStream.read();
+            if (b == 13) {
+                Integer c = inputStream.read();
+                 if (c == 10) {
+                    break;
+                } else {
+                    sb.appendCharacter(b.character);
+                    sb.appendCharacter(c.character);
+                }
+            } else {
+                sb.appendCharacter(b.character);
+            }
+        }
+        return sb.string;
     }
     
 }

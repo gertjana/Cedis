@@ -1,6 +1,9 @@
 import java.net {InetSocketAddress,Socket, SocketException }
 import java.lang {Byte}
 import ceylon.interop.java {javaString}
+
+doc "Contains all the know-how on how to connect and disconnect to a Redis DB"
+by "Gertjan Assies"
 shared class RedisConnection(String host, Integer port, Integer timeout) {
     
     variable Socket socket := Socket();

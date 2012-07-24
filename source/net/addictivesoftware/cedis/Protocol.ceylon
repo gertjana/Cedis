@@ -2,18 +2,26 @@ import java.io {OutputStream, InputStream}
 import java.lang { JString=String{format} }
 import ceylon.interop.java { javaString }
 
+doc "Contains all the know-how on how to talk to Redis"
+by "Gertjan Assies"
 shared class Protocol() {
     String commandPattern = "*%s\r\n$%s\r\n%s\r\n";
     String argPattern = "$%s\r\n%s\r\n";
 
-    Integer minusSymbol    = 45;
     Integer plusSymbol     = 43;
-    Integer dollarSymbol   = 36;
+    Integer minusSymbol    = 45;
     Integer colonSymbol    = 58;
+    Integer dollarSymbol   = 36;
     Integer asteriksSymbol = 42;
 
 
-    //*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n
+    doc "A command will look like this:
+        *<number of arguments> CR LF
+        $<number of bytes of argument 1> CR LF
+        <argument data> CR LF
+        ...
+        $<number of bytes of argument N> CR LF
+        <argument data> CR LF"
     shared void sendCommand(OutputStream os, String command, Empty|Sequence<String> args) {
         StringBuilder sb = StringBuilder();
         sb.append(format(commandPattern, args.size+1, command.size, command));
@@ -23,6 +31,13 @@ shared class Protocol() {
         os.write(javaString(sb.string).bytes);
     }
 
+    doc "The Type of response is based on the first character
+        With a single line reply the first byte of the reply will be '+'
+        With an error message the first byte of the reply will be '-'
+        With an integer number the first byte of the reply will be ':'
+        With bulk reply the first byte of the reply will be '$'
+        With multi-bulk reply the first byte of the reply will be '*'
+        "
     shared Iterable<String> read(InputStream inputStream) {
         Integer first = inputStream.read();
         //print("FIRST:"+first.string);
@@ -46,7 +61,14 @@ shared class Protocol() {
     } 
 
     Iterable<String> processMultiBulkReply(InputStream inputStream) {
-        return readlines(inputStream);
+        SequenceBuilder<String> result = SequenceBuilder<String>();
+        variable Integer length := parseInteger(readline(inputStream)) else 0;
+        while (length > 0) {
+            inputStream.read();
+            result.append(processBulkReply(inputStream));
+            length--;
+        }
+       return result.sequence;
     } 
 
     Iterable<String> processInteger(InputStream inputStream) {
@@ -72,17 +94,6 @@ shared class Protocol() {
     Iterable<String> processStatusCodeReply(InputStream inputStream) {
         return {readline(inputStream)};
     } 
-
-    Iterable<String> readlines(InputStream inputStream) {
-        SequenceBuilder<String> result = SequenceBuilder<String>();
-        variable Integer length := parseInteger(readline(inputStream)) else 0;
-        while (length > 0) {
-            inputStream.read();
-            result.append(processBulkReply(inputStream));
-            length--;
-        }
-       return result.sequence;
-    }
 
     String readline(InputStream inputStream) {
         variable StringBuilder sb := StringBuilder();

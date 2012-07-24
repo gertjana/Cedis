@@ -6,8 +6,8 @@ doc "Contains all the know-how on how to connect and disconnect to a Redis DB"
 by "Gertjan Assies"
 shared class RedisConnection(String host, Integer port, Integer timeout) {
     
-    variable Socket socket := Socket();
-    variable Protocol protocol := Protocol();
+    Socket socket = Socket();
+    Protocol protocol = Protocol();
 
     default shared void connect() {
         if (!isConnected()) {

@@ -66,7 +66,7 @@ shared class Cedis(String host="localhost", Integer port=6379, Integer timeout=2
 
     doc "Return all the fields and associated values in a hash.
          Time complexity: O(N), where N is the total number of entries"
-    actual shared HashMap<String, String> hgetall(String key) {
+    actual shared HashMap<String, String> hgetAll(String key) {
         connection.sendCommand("HGETALL", {key});
         HashMap<String, String> result = HashMap<String, String>();
         variable Boolean isKey := true;
@@ -115,8 +115,64 @@ shared class Cedis(String host="localhost", Integer port=6379, Integer timeout=2
         connection.sendCommand("TYPE", {key});
     	return connection.getReply();
     }
+    
+    doc "Set a timeout on key. After the timeout has expired, the key will automatically be deleted. 
+    	 A key with an associated timeout is often said to be volatile in Redis terminology."
     shared actual Integer expire(String key, Integer seconds) {
         connection.sendCommand("EXPIRE", {key, seconds.string});
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Same as expire, but allows for a unix timestamp (seconds since January 1, 1970)."
+    shared actual Integer expireAt(String key, Integer unixTime) {
+        connection.sendCommand("EXPIREAT", {key, unixTime.string});
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Returns the bit value at offset in the string value stored at key."
+    shared actual Boolean getBit(String key, Integer offset) {
+        connection.sendCommand("GETBIT", {key, offset.string});
+    	return connection.getReply() == "1";
+    }
+    
+    doc "Sets or clears the bit at offset in the string value stored at key.
+    	 Returns the original value."
+    shared actual Boolean setBit(String key, Integer offset, Boolean val) {
+        variable Integer bitValue := 0;
+        if (val) {
+            bitValue := 1;
+        }
+        connection.sendCommand("SETBIT", {key, offset.string, bitValue.string});
+    	return connection.getReply() == "1";
+    }
+    
+    doc "Returns the remaining time to live of a key that has a timeout"
+    shared actual Integer ttl(String key) {
+        connection.sendCommand("TTL", { key });
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Decrements the key by one"
+    shared actual Integer decr(String key) {
+		connection.sendCommand("DECR", { key });
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Decrements the key by the given amount"
+    shared actual Integer decrBy(String key, Integer amount) {
+        connection.sendCommand("DECRBY", { key, amount.string });
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Increments the key"
+    shared actual Integer incr(String key) {
+        connection.sendCommand("INCR", { key });
+    	return parseInteger(connection.getReply()) else -1;
+    }
+    
+    doc "Increments the key by the given amount"
+    shared actual Integer incrBy(String key, Integer amount) {
+        connection.sendCommand("INCRBY", { key, amount.string });
     	return parseInteger(connection.getReply()) else -1;
     }
     

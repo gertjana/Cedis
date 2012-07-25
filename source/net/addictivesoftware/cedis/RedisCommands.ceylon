@@ -1,31 +1,34 @@
 
+
+doc "All supported Redis Commands"
 shared interface RedisCommands {
 
-    shared formal Boolean existsKey(String key);
-    shared formal Integer expire(String key, Integer seconds);
-    shared formal String info();
-    shared formal String get(String key);
-    shared formal String hget(String key, String field);
-    shared formal Map<String, String> hgetall(String key);
-    shared formal Iterable<String> hmget(String key, String... fields);
-    shared formal String hmset(String key, Map<String, String> hash);
-    shared formal Integer hset(String key, String field, String val);
-    shared formal String set(String key, String val);
-    shared formal String type(String key);
+    shared formal Integer 				decr(String key);
+    shared formal Integer 				decrBy(String key, Integer integer);
+    shared formal Boolean 				existsKey(String key);
+    shared formal Integer 				expire(String key, Integer seconds);
+	shared formal Integer 				expireAt(String key, Integer unixTime);
+    shared formal Integer 				incr(String key);
+    shared formal Integer 				incrBy(String key, Integer integer);
+    shared formal String 				info();
+    shared formal String 				get(String key);
+    shared formal Boolean 				getBit(String key, Integer offset);
+    shared formal String 				hget(String key, String field);
+    shared formal Map<String, String> 	hgetAll(String key);
+    shared formal Iterable<String> 		hmget(String key, String... fields);
+    shared formal String 				hmset(String key, Map<String, String> hash);
+    shared formal Integer	 			hset(String key, String field, String val);
+    shared formal String 				set(String key, String val);
+    shared formal Boolean 				setBit(String key, Integer offset, Boolean val);
+    shared formal Integer 				ttl(String key);
+    shared formal String 				type(String key);
+
+
+
+
 
 
 /*
- 
-
-
-
-    shared formal Integer expireAt(String key, Integer unixTime);
-
-    shared formal Integer ttl(String key);
-
-    shared formal Boolean setbit(String key, Integer offset, Boolean val);
-
-    shared formal Boolean getbit(String key, Integer offset);
 
     shared formal Integer setrange(String key, Integer offset, String val);
 
@@ -37,13 +40,7 @@ shared interface RedisCommands {
 
     shared formal String setex(String key, Integer seconds, String val);
 
-    shared formal Integer decrBy(String key, Integer integer);
 
-    shared formal Integer decr(String key);
-
-    shared formal Integer incrBy(String key, Integer integer);
-
-    shared formal Integer incr(String key);
 
     shared formal Integer append(String key, String val);
 
@@ -64,8 +61,6 @@ shared interface RedisCommands {
     shared formal Set<String> hkeys(String key);
 
     shared formal List<String> hvals(String key);
-
-    shared formal Map<String, String> hgetAll(String key);
 
     shared formal Integer rpush(String key, String... string);
 

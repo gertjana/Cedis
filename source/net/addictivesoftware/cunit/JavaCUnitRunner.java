@@ -18,7 +18,7 @@ public class JavaCUnitRunner {
 		int fail = 0;
 		int error = 0;
 		List<Method> testMethods = new ArrayList<Method>();
-		
+
 		report.append("CUnit Test report for ");
 		report.append(className);
 		report.append("\r\n");
@@ -43,31 +43,31 @@ public class JavaCUnitRunner {
 			if (null != beforeMethod) {
 				beforeMethod.invoke(instance, new Object[] {});
 			}
-			
+			long start = System.currentTimeMillis();
 			for (Method testMethod : testMethods) {
+				String errorMessage = "";
 				try {
 					testMethod.invoke(instance, new Object[] {});
-					report.append("[OK...] ");
+					report.append("[OK]    ");
 					report.append(testMethod.getName());
-					report.append("\r\n");
 					ok++;
 				} catch (Exception e) {
-					if (e instanceof AssertionException) {
-						report.append("[FAIL.] ");
+					if (e.getCause() instanceof AssertionException) {
+						report.append("[FAIL]  ");
 						report.append(testMethod.getName());
-						report.append("\r\n");
-						report.append(e.getMessage());
-						report.append("\r\n");
+						errorMessage = e.getCause().getMessage();
 						fail++;
 					} else {
 						report.append("[ERROR] ");
 						report.append(testMethod.getName());
-						report.append("\r\n");
-						report.append(e.getMessage());
-						report.append("\r\n");
+						errorMessage = e.getMessage();
 						error++;						
 					}
-				} finally {
+				}
+				long spent = System.currentTimeMillis()-start;
+				report.append(fillUp(48-testMethod.getName().length(), "["+spent + " ms]\r\n"));
+				if (!"".equals(errorMessage)) {
+					report.append(errorMessage + "\r\n");
 				}
 				
 			}
@@ -91,7 +91,7 @@ public class JavaCUnitRunner {
 			e.printStackTrace();
 		}	
 		report.append("======================================================\r\n");
-		report.append(String.format("Sucess: %d, Fail: %d, Error %d, of Total %d Tests", ok, fail, error, (ok+fail+error)));
+		report.append(String.format("Sucess: %d, Fail: %d, Error %d, of a Total of %d Tests", ok, fail, error, (ok+fail+error)));
 		return report.toString();
 	}
 
@@ -113,5 +113,15 @@ public class JavaCUnitRunner {
 			}	
 		}
 		return result;
+	}
+	private String fillUp(int size, String text) {
+		int spaces = size-text.length();
+		StringBuffer sb = new StringBuffer();
+		while(spaces>0) {
+			sb.append(".");
+			spaces--;
+		}
+		sb.append(text);	
+		return sb.toString();
 	}
 }

@@ -32,7 +32,7 @@ shared interface RedisCommands {
     shared formal String                setex(String key, Integer seconds, String val);
     shared formal Integer               setnx(String key, String val);
     shared formal Set<String>           smembers(String key);
-shared formal Integer                   srem(String key, String... member);
+    shared formal Integer               srem(String key, String... member);
     shared formal String                substr(String key, Integer start, Integer end);
     shared formal Integer 				ttl(String key);
     shared formal String 				type(String key);

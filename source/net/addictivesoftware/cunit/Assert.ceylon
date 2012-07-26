@@ -27,23 +27,24 @@ shared void assertNotEquals(Object? expected, Object? actual) {
 }
 
 doc ""
-shared void assertTrue(Boolean a) {
-    if (!a) { throw AssertionException("FAIL"); }
+shared void assertTrue(Boolean expected) {
+    if (!expected) { throw AssertionException("expected is not True"); }
 }
 
 doc ""
-shared void assertFalse(Boolean a) {
-    assertTrue(!a);
+shared void assertFalse(Boolean expected) {
+    if (expected) { throw AssertionException("expected is not False"); }
 }   
 
-String failedMessage(Object? a, Object? b) {
+
+String failedMessage(Object? expected, Object? actual) {
     variable String aString := "null"; 
-    if (exists a) {
-        aString := a.string;
+    if (exists expected) {
+        aString := expected.string;
     }
     variable String bString := "null"; 
-    if (exists b) {
-        bString := b.string;
+    if (exists actual) {
+        bString := actual.string;
     }
-    return "FAIL: " + aString + " <-> " + bString;
+    return "expected: " + aString + " but got: " + bString;
 }

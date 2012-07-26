@@ -1,8 +1,10 @@
 
 
-doc "All supported Redis Commands"
+doc "All supported Redis Commands
+     Current support based on Redis 2.4.5"
 shared interface RedisCommands {
 
+    shared formal Integer               append(String key, String val);
     shared formal Integer 				decr(String key);
     shared formal Integer 				decrBy(String key, Integer integer);
     shared formal Boolean 				existsKey(String key);
@@ -13,19 +15,27 @@ shared interface RedisCommands {
     shared formal String 				info();
     shared formal String 				get(String key);
     shared formal Boolean 				getBit(String key, Integer offset);
+    shared formal String                getSet(String key, String val);
+    shared formal Integer               hdel(String key, String... field);
+    shared formal Boolean               hexists(String key, String field);
     shared formal String 				hget(String key, String field);
     shared formal Map<String, String> 	hgetAll(String key);
+    shared formal Iterable<String>      hkeys(String key);
+    shared formal Integer               hlen(String key);
     shared formal Iterable<String> 		hmget(String key, String... fields);
     shared formal String 				hmset(String key, Map<String, String> hash);
     shared formal Integer	 			hset(String key, String field, String val);
+    shared formal Iterable<String>      hvals(String key);
+    shared formal Integer               sadd(String key, String... member);
     shared formal String 				set(String key, String val);
     shared formal Boolean 				setBit(String key, Integer offset, Boolean val);
+    shared formal String                setex(String key, Integer seconds, String val);
+    shared formal Integer               setnx(String key, String val);
+    shared formal Set<String>           smembers(String key);
+shared formal Integer                   srem(String key, String... member);
+    shared formal String                substr(String key, Integer start, Integer end);
     shared formal Integer 				ttl(String key);
     shared formal String 				type(String key);
-
-
-
-
 
 
 /*
@@ -34,33 +44,9 @@ shared interface RedisCommands {
 
     shared formal String getrange(String key, Integer startOffset, Integer endOffset);
 
-    shared formal String getSet(String key, String val);
-
-    shared formal Integer setnx(String key, String val);
-
-    shared formal String setex(String key, Integer seconds, String val);
-
-
-
-    shared formal Integer append(String key, String val);
-
-    shared formal String substr(String key, Integer start, Integer end);
-
-
-
     shared formal Integer hsetnx(String key, String field, String val);
 
     shared formal Integer hincrBy(String key, String field, Integer val);
-
-    shared formal Boolean hexists(String key, String field);
-
-    shared formal Integer hdel(String key, String... field);
-
-    shared formal Integer hlen(String key);
-
-    shared formal Set<String> hkeys(String key);
-
-    shared formal List<String> hvals(String key);
 
     shared formal Integer rpush(String key, String... string);
 
@@ -82,11 +68,7 @@ shared interface RedisCommands {
 
     shared formal String rpop(String key);
 
-    shared formal Integer sadd(String key, String... member);
 
-    shared formal Set<String> smembers(String key);
-
-    shared formal Integer srem(String key, String... member);
 
     shared formal String spop(String key);
 

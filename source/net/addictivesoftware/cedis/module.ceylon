@@ -16,6 +16,12 @@ Module module {
             version = '0.3.1';
             optional = false;
             export = false;
-        }
-    };
+        },
+        Import {
+            name = 'net.addictivesoftware.cunit';
+            version = '0.1.0';
+            optional = false;
+            export = true;
+		}
+	};
 }

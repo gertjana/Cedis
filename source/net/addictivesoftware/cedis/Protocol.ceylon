@@ -2,7 +2,7 @@ import java.io {OutputStream, InputStream}
 import java.lang { JString=String{format} }
 import ceylon.interop.java { javaString }
 
-doc "Contains all the know-how on how to talk to Redis"
+doc "Contains all the know-how on how to talk to a Redis DB"
 by "Gertjan Assies"
 shared class Protocol() {
     String commandPattern = "*%s\r\n$%s\r\n%s\r\n";
@@ -15,13 +15,16 @@ shared class Protocol() {
     Integer asteriksSymbol = 42;
 
 
-    doc "A command will look like this:
-        *<number of arguments> CR LF
-        $<number of bytes of argument 1> CR LF
-        <argument data> CR LF
+    doc "writes the command and its arguments to the outputStream
+    
+A command will look like this:
+
+        *[number of arguments] CRLF
+        $[number of bytes of argument 1] CRLF
+        [argument data] CRLF
         ...
-        $<number of bytes of argument N> CR LF
-        <argument data> CR LF"
+        $[number of bytes of argument N] CRLF
+        [argument data] CRLF"
     shared void sendCommand(OutputStream os, String command, Empty|Sequence<String> args) {
         StringBuilder sb = StringBuilder();
         sb.append(format(commandPattern, args.size+1, command.size, command));
@@ -31,13 +34,38 @@ shared class Protocol() {
         os.write(javaString(sb.string).bytes);
     }
 
-    doc "The Type of response is based on the first character
-        With a single line reply the first byte of the reply will be '+'
-        With an error message the first byte of the reply will be '-'
-        With an integer number the first byte of the reply will be ':'
-        With bulk reply the first byte of the reply will be '$'
-        With multi-bulk reply the first byte of the reply will be '*'
-        "
+    doc "Gets the response back from the inputstream 
+
+The Type of response is based on the first character  returned
+
+<table style='width:300px;'> 
+    <tr>
+        <th>First Char</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>+</td>
+        <td>a single line reply</td>
+    </tr>
+    <tr>
+        <td>-</td>
+        <td>an error message</td>
+    </tr>
+    <tr>
+        <td>:</td>
+        <td>an integer number</td>
+    </tr>
+    <tr>
+        <td>$</td>
+        <td>bulk reply</td>
+    </tr>
+    <tr>
+        <td>*</td>
+        <td>multi-bulk reply, (consists of multiple bulk replies)</td>
+    </tr>
+</table>
+"
     shared Iterable<String> read(InputStream inputStream) {
         Integer first = inputStream.read();
         //print("FIRST:"+first.string);
